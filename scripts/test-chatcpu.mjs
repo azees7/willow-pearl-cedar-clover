@@ -31,6 +31,7 @@ try {
     "node",
     "--types",
     "node",
+    "--esModuleInterop",
     "--strict",
     "--skipLibCheck",
     "--outDir",
