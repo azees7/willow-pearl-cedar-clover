@@ -1,4 +1,4 @@
-/** ChatCPU MiniOS ISA — inherited from setup.py SHELL + runtime.py. */
+/** ChatCPU MiniOS ISA — 16-bit core. */
 
 export const RAM_SIZE = 65536;
 export const ROM_SIZE = 65536;
@@ -19,11 +19,31 @@ export const OPS = {
   SUB: 0x06,
   INC: 0x07,
   DEC: 0x08,
+  CMP: 0x09,
+  LDA: 0x0a,
+  STA: 0x0b,
+  JMP: 0x0c,
+  JZ: 0x0d,
+  JNZ: 0x0e,
+  PUSH: 0x0f,
+  POP: 0x10,
+  CALL: 0x11,
   IN: 0x12,
   OUT: 0x13,
+  RET: 0x14,
   HLT: 0x15,
 } as const;
 
 export type OpName = keyof typeof OPS;
 
-export const OP_HAS_IMM: ReadonlySet<string> = new Set(["LDIA", "LDIB", "IN"]);
+export const OP_HAS_IMM: ReadonlySet<string> = new Set([
+  "LDIA",
+  "LDIB",
+  "LDA",
+  "STA",
+  "JMP",
+  "JZ",
+  "JNZ",
+  "CALL",
+  "IN",
+]);

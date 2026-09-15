@@ -51,7 +51,7 @@ export function ensureDisk() {
     return;
   }
   const files = readAll();
-  if (!files["/minios/version.txt"]?.includes("4.0")) {
+  if (!files["/minios/version.txt"]?.includes("CPU Core: 4.1")) {
     writeAll({
       ...files,
       "/minios/version.txt": VERSION,
@@ -59,6 +59,7 @@ export function ensureDisk() {
       "/minios/system.cfg": FACTORY["/minios/system.cfg"],
       "/minios/helix.cfg": FACTORY["/minios/helix.cfg"],
       "/minios/shell.py": FACTORY["/minios/shell.py"],
+      "/minios/programs/core41.asm": FACTORY["/minios/programs/core41.asm"],
     });
   }
 }
