@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "ChatCPU MiniOS",
+      "hasCanvas": false,
+      "bodyTextLen": 1527,
+      "bodyTextHash": "0dae93a538e2d64194ffef50ed93851974e5d2c50a389c1fcab474c9918e92ab",
+      "bodyTextPrefix": "MINICPU · 64 KIB · MINIOS 4.0 · HELIX MINI ChatCPU MiniOS HALT C",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "ChatCPU MiniOS",
+      "hasCanvas": false,
+      "bodyTextLen": 1510,
+      "bodyTextHash": "547027c7488366352cf2b88cbe99ace30e41c3f2b883107543912ace1d771331",
+      "bodyTextPrefix": "MINICPU · 64 KIB · MINIOS 4.0 · HELIX MINI ChatCPU MiniOS HALT C",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}
