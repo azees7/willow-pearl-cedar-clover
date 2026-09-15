@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { assemble } from "./assemble.ts";
-import { ChatCPU } from "./cpu.ts";
+import { assemble } from "./assemble";
+import { ChatCPU } from "./cpu";
 
 function run(source: string) {
   const cpu = new ChatCPU();
