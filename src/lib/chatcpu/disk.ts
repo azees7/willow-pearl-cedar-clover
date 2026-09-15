@@ -58,7 +58,8 @@ export function ensureDisk() {
       "/minios/config.cfg": FACTORY["/minios/config.cfg"],
       "/minios/system.cfg": FACTORY["/minios/system.cfg"],
       "/minios/helix.cfg": FACTORY["/minios/helix.cfg"],
-      "/minios/shell.py": FACTORY["/minios/shell.py"],\n      "/minios/programs/core41.asm": FACTORY["/minios/programs/core41.asm"],
+      "/minios/shell.py": FACTORY["/minios/shell.py"],
+      "/minios/programs/core41.asm": FACTORY["/minios/programs/core41.asm"],
     });
   }
 }
