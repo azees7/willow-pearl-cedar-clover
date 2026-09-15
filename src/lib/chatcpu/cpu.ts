@@ -88,6 +88,31 @@ export class ChatCPU {
     this.keyQueue.push(code & 0xff);
   }
 
+  readWord(address: number): number {
+    const a = address & 0xffff;
+    const lo = this.ram[a];
+    const hi = this.ram[(a + 1) & 0xffff];
+    return lo | (hi << 8);
+  }
+
+  writeWord(address: number, value: number) {
+    const a = address & 0xffff;
+    const word = value & 0xffff;
+    this.ram[a] = word & 0xff;
+    this.ram[(a + 1) & 0xffff] = (word >> 8) & 0xff;
+  }
+
+  pushWord(value: number) {
+    this.SP = (this.SP - 2) & 0xffff;
+    this.writeWord(this.SP, value);
+  }
+
+  popWord(): number {
+    const value = this.readWord(this.SP);
+    this.SP = (this.SP + 2) & 0xffff;
+    return value;
+  }
+
   private imm16() {
     const lo = this.rom[this.PC];
     const hi = this.rom[(this.PC + 1) & 0xffff];
@@ -95,33 +120,74 @@ export class ChatCPU {
     return lo | (hi << 8);
   }
 
-  private flags() {
-    this.Z = this.A === 0 ? 1 : 0;
-    this.N = this.A & 0x8000 ? 1 : 0;
+  private flagsFrom(value: number) {
+    const word = value & 0xffff;
+    this.Z = word === 0 ? 1 : 0;
+    this.N = word & 0x8000 ? 1 : 0;
+  }
+
+  private compareAB() {
+    const result = this.A - this.B;
+    const word = result & 0xffff;
+    this.Z = word === 0 ? 1 : 0;
+    this.CF = result < 0 ? 1 : 0;
+    this.N = word & 0x8000 ? 1 : 0;
   }
 
   step() {
+    const opAddress = this.PC;
     const op = this.rom[this.PC];
     this.PC = (this.PC + 1) & 0xffff;
 
     if (op === OPS.NOP) {
-      /* */
+      /* no-op */
     } else if (op === OPS.LDIA) {
       this.A = this.imm16();
+      this.flagsFrom(this.A);
     } else if (op === OPS.LDIB) {
       this.B = this.imm16();
     } else if (op === OPS.ADD) {
       const result = this.A + this.B;
       this.CF = result > 0xffff ? 1 : 0;
       this.A = result & 0xffff;
+      this.flagsFrom(this.A);
     } else if (op === OPS.SUB) {
       const result = this.A - this.B;
       this.CF = result < 0 ? 1 : 0;
       this.A = result & 0xffff;
+      this.flagsFrom(this.A);
     } else if (op === OPS.INC) {
+      this.CF = this.A === 0xffff ? 1 : 0;
       this.A = (this.A + 1) & 0xffff;
+      this.flagsFrom(this.A);
     } else if (op === OPS.DEC) {
+      this.CF = this.A === 0 ? 1 : 0;
       this.A = (this.A - 1) & 0xffff;
+      this.flagsFrom(this.A);
+    } else if (op === OPS.CMP) {
+      this.compareAB();
+    } else if (op === OPS.LDA) {
+      this.A = this.readWord(this.imm16());
+      this.flagsFrom(this.A);
+    } else if (op === OPS.STA) {
+      this.writeWord(this.imm16(), this.A);
+    } else if (op === OPS.JMP) {
+      this.PC = this.imm16();
+    } else if (op === OPS.JZ) {
+      const target = this.imm16();
+      if (this.Z) this.PC = target;
+    } else if (op === OPS.JNZ) {
+      const target = this.imm16();
+      if (!this.Z) this.PC = target;
+    } else if (op === OPS.PUSH) {
+      this.pushWord(this.A);
+    } else if (op === OPS.POP) {
+      this.A = this.popWord();
+      this.flagsFrom(this.A);
+    } else if (op === OPS.CALL) {
+      const target = this.imm16();
+      this.pushWord(this.PC);
+      this.PC = target;
     } else if (op === OPS.IN) {
       const port = this.imm16() & 0xff;
       if (port === PORT_KEY || port === 0) {
@@ -131,17 +197,22 @@ export class ChatCPU {
       } else {
         this.A = 0;
       }
+      this.flagsFrom(this.A);
     } else if (op === OPS.OUT) {
       this.outputBuffer.push(String.fromCharCode(this.A & 0xff));
+    } else if (op === OPS.RET) {
+      this.PC = this.popWord();
     } else if (op === OPS.HLT) {
       this.running = false;
     } else {
       this.running = false;
-      this.lastError = `Unknown opcode ${op.toString(16).padStart(2, "0").toUpperCase()} at ${((this.PC - 1) & 0xffff).toString(16).padStart(4, "0").toUpperCase()}`;
+      this.lastError = `Unknown opcode ${op.toString(16).padStart(2, "0").toUpperCase()} at ${opAddress
+        .toString(16)
+        .padStart(4, "0")
+        .toUpperCase()}`;
       throw new Error(this.lastError);
     }
 
-    this.flags();
     this.cycles += 1;
   }
 
