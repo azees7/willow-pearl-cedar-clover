@@ -1,5 +1,8 @@
 /** Helix Mini 4.0 lite — pulse, gravity, beliefs, STA. Mock LLM. */
 
+import { customizationBeliefLines, customizationStats } from "@/lib/customization/store";
+import { mcpBeliefLines, mcpStats } from "@/lib/mcp/registry";
+
 export type HelixState = "ACTIVE" | "RESTING" | "DORMANT";
 
 export type Belief = {
@@ -49,6 +52,11 @@ const SEEDS: { category: string; content: string; mass: number }[] = [
     category: "knowledge",
     content: "ChatCPU MiniOS 4.0 is the workstation face. Full Helix-AGI dashboard stays out of Mini.",
     mass: 0.8,
+  },
+  {
+    category: "capabilities",
+    content: "Helix can receive privacy-preserving local Customization Service context and discover external capabilities through the MiniOS MCP bus.",
+    mass: 0.86,
   },
 ];
 
@@ -150,18 +158,38 @@ export function addBelief(category: string, content: string, mass = 0.7): Belief
   return row;
 }
 
+function transientBeliefs(query: string): Belief[] {
+  const local = customizationBeliefLines(query).map((content, i) => ({
+    id: `custom-${i}`,
+    category: "local_customization",
+    content,
+    mass: 0.78,
+    vec: embed(content),
+  }));
+  const mcp = mcpBeliefLines(query).map((content, i) => ({
+    id: `mcp-${i}`,
+    category: "mcp",
+    content,
+    mass: 0.72,
+    vec: embed(content),
+  }));
+  return [...local, ...mcp];
+}
+
 function nextAction(query: string): string {
   const q = query.toLowerCase();
   if (/\bsnake\b/.test(q)) return "play snake on the CRT";
   if (/\bhello\b|\bdemo\b/.test(q)) return "run /minios/programs/hello.asm";
   if (/\bregs?\b|\bregister\b/.test(q)) return "show CPU registers";
+  if (/\bmcp\b|\bconnector\b|\btool server\b/.test(q)) return "inspect the MiniOS MCP registry";
+  if (/\bcustom(?:ization)?\b|\bprofile\b/.test(q)) return "inspect the local customization profile";
   if (/\bcurate\b/.test(q)) return "run a DORMANT curator pass";
   return "await the next shell line";
 }
 
 export function pulse(query: string, hint = ""): PulseResult {
   const q = (query || "status").trim();
-  const beliefs = loadBeliefs();
+  const beliefs = [...loadBeliefs(), ...transientBeliefs(q)];
   const neighbors = gravityRank(`${q} ${hint}`, beliefs, 4);
   const top = neighbors[0]?.content || "Helix Mini 4.0 is listening.";
   const action = nextAction(q);
@@ -200,5 +228,5 @@ export function curate(): string {
 
 export function stats(): string {
   const n = loadBeliefs().length;
-  return `state=ACTIVE beliefs=${n} embed=ngram llm=mock version=4.0`;
+  return `state=ACTIVE beliefs=${n} embed=ngram llm=mock version=4.0 ${customizationStats()} ${mcpStats()}`;
 }
