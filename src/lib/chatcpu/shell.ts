@@ -3,6 +3,8 @@ import { ChatCPU } from "./cpu";
 import * as disk from "./disk";
 import { HELLO } from "./image";
 import { curate, pulse, stats, allBeliefs } from "@/lib/helix/mini";
+import { clearCustomizationProfile, customizationStats } from "@/lib/customization/store";
+import { desktopMcpConfig, MCP_SERVERS } from "@/lib/mcp/registry";
 import { defaultSnake, parseSnake } from "./snake";
 
 function splitArgs(line: string): string[] {
@@ -75,6 +77,12 @@ FILES
 CPU
   regs            reset
   mem <addr> [n]
+
+CONTEXT
+  custom          custom clear
+
+MCP BUS
+  mcp             mcp config
 
 HELIX MINI 4.0
   helix [msg]     pulse [msg]
@@ -209,6 +217,30 @@ ISA
 
   if (cmd === "admin") {
     return { text: "ADMIN · disk, ROM, factory install", admin: true };
+  }
+
+  if (cmd === "custom") {
+    if (args[0]?.toLowerCase() === "clear") {
+      clearCustomizationProfile();
+      return { text: "CUSTOMIZATION PROFILE CLEARED" };
+    }
+    return {
+      text: `${customizationStats()}\nimporter=ready gzip+tar+jsonl\nstorage=aggregate-only local`,
+    };
+  }
+
+  if (cmd === "mcp") {
+    if (args[0]?.toLowerCase() === "config") {
+      return { text: JSON.stringify(desktopMcpConfig(), null, 2) };
+    }
+    return {
+      text:
+        "MiniOS MCP bus\n" +
+        MCP_SERVERS.map(
+          (server) =>
+            `${server.id}\t${server.role}\t${server.transport}\t${server.enabledByDefault ? "default-on" : "default-off"}\t${server.endpoint}`,
+        ).join("\n"),
+    };
   }
 
   if (cmd === "helix" || cmd === "pulse") {
