@@ -4,6 +4,7 @@ export const CACHE_NAME = "CHATCPU-MINIOS";
 export const VERSION = `ChatCPU MiniOS
 Version 4.0
 CPU: ChatCPU
+CPU Core: 4.1
 Coprocessor: Helix Mini 4.0
 Architecture: 16-bit
 RAM: 65536
@@ -15,6 +16,7 @@ export const CONFIG = `[machine]
 name=ChatCPU
 os=MiniOS
 version=4.0
+core=4.1
 ram=65536
 rom=65536
 screen=32x16
@@ -111,6 +113,29 @@ OUT
 HLT
 `;
 
+export const CORE_41_DEMO = `; ChatCPU Core 4.1 control-flow demo
+; Count to 5, call a function, print "5", and return.
+
+LDIA 0
+LDIB 5
+
+loop:
+INC
+CMP
+JNZ loop
+
+CALL emit_digit
+HLT
+
+emit_digit:
+PUSH
+LDIB 48
+ADD
+OUT
+POP
+RET
+`;
+
 export const SNAKE_SAVE = JSON.stringify(
   {
     length: 3,
@@ -203,8 +228,18 @@ OPS = {
     "SUB": 0x06,
     "INC": 0x07,
     "DEC": 0x08,
+    "CMP": 0x09,
+    "LDA": 0x0A,
+    "STA": 0x0B,
+    "JMP": 0x0C,
+    "JZ": 0x0D,
+    "JNZ": 0x0E,
+    "PUSH": 0x0F,
+    "POP": 0x10,
+    "CALL": 0x11,
     "IN": 0x12,
     "OUT": 0x13,
+    "RET": 0x14,
     "HLT": 0x15,
 }
 `;
@@ -218,7 +253,8 @@ export const FACTORY: Record<string, string> = {
   "/minios/config.cfg": CONFIG,
   "/minios/system.cfg": CONFIG,
   "/minios/programs/hello.asm": HELLO,
-  "/minios/programs/add.asm": ADD_DEMO,\n  "/minios/programs/core41.asm": CORE_41_DEMO,
+  "/minios/programs/add.asm": ADD_DEMO,
+  "/minios/programs/core41.asm": CORE_41_DEMO,
   "/minios/programs/demo.asm": HELLO,
   "/minios/snake.save": SNAKE_SAVE,
   "/minios/helix.cfg": CONFIG,
