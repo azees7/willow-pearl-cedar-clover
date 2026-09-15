@@ -218,7 +218,7 @@ export const FACTORY: Record<string, string> = {
   "/minios/config.cfg": CONFIG,
   "/minios/system.cfg": CONFIG,
   "/minios/programs/hello.asm": HELLO,
-  "/minios/programs/add.asm": ADD_DEMO,
+  "/minios/programs/add.asm": ADD_DEMO,\n  "/minios/programs/core41.asm": CORE_41_DEMO,
   "/minios/programs/demo.asm": HELLO,
   "/minios/snake.save": SNAKE_SAVE,
   "/minios/helix.cfg": CONFIG,
