@@ -1,11 +1,53 @@
 # MiniOS Context + MCP Integration
 
-This branch keeps the visual layer replaceable while baking two service layers into the machine environment:
+This branch keeps the visual layer replaceable while baking service layers into the machine environment.
 
-1. a local Samsung Customization Service context provider for Helix Mini;
-2. an MCP transport/registry bus seeded with the uploaded `mcpmcp-server` endpoint.
+No file under `src/components/` is required for these integrations.
 
-No file under `src/components/` is required for either integration.
+## 4.2 Helix context-provider contract
+
+Helix core no longer imports Customization or MCP domain modules directly.
+
+The canonical TypeScript contract lives in `src/lib/helix/context/`:
+
+```ts
+type ContextLine = {
+  content: string;
+  mass: number;
+  transient: boolean;
+};
+
+type ContextChannel = {
+  id: string;
+  category: string;
+  source: string;
+  lines: ContextLine[];
+};
+
+interface ContextProvider {
+  id: string;
+  get(query: string): ContextChannel[];
+  status?: () => string;
+}
+```
+
+The default registry adapts three existing sources:
+
+- persistent Helix journal
+- local Customization Service profile
+- MCP capability registry
+
+`mini.ts` only calls `collectContext(query)`, converts returned lines into gravity-ranked beliefs, and produces STA output. It does not know Samsung or MCP by name.
+
+Providers may be registered and removed at runtime. This is the extension seam for future calendar, health, device, host, or other context sources.
+
+Boundary tests verify:
+
+- a fake Calendar provider can influence a pulse without modifying Helix core;
+- removing Customization and MCP providers does not break Helix;
+- transient provider content is not written into the persistent journal.
+
+MiniOS and Helix remain product version 4.0; **4.2 is the architecture milestone for this provider contract**.
 
 ## Local Customization Service context
 
@@ -23,7 +65,7 @@ Import happens locally. The persisted profile is aggregate-only and deliberately
 
 Future interfaces should pass selected file bytes to `importCustomizationExport(new Uint8Array(await file.arrayBuffer()))`.
 
-Helix automatically turns the resulting profile into transient `local_customization` beliefs during a pulse. Those context beliefs are gravity-ranked but are not appended to the permanent Helix journal.
+The Customization adapter exposes matching aggregate facts as transient `local_customization` channel lines. They are gravity-ranked but are not appended to the permanent Helix journal.
 
 Shell commands: `custom` and `custom clear`.
 
@@ -39,20 +81,14 @@ The built-in registry contains `mcpmcp -> https://mcpmcp.io/mcp` as a default-of
 
 Shell commands: `mcp` and `mcp config`.
 
-MCP is registered but remains default-off. A future UI or host decides when a remote connection is appropriate and handles any required authorization.
-
-## Helix behavior
-
-Helix Mini now ranks three belief sources together: the persistent Helix journal, transient local customization context, and transient MCP capability context.
-
-The latter two are query-sensitive and are not written into permanent beliefs merely because they were available.
+MCP is registered but remains default-off. A future host-control plane decides when a remote connection is appropriate and handles authorization, visibility, approval, and disconnect behavior. That work belongs to 4.3, not 4.2.
 
 ## Agent boundary
 
 A new UI should consume these services rather than reimplement them:
 
 - `src/lib/chatcpu/` — machine
-- `src/lib/helix/` — agent/cognition
+- `src/lib/helix/` — cognition and provider contract
 - `src/lib/customization/` — local personal context
 - `src/lib/mcp/` — external capability bus
 - `src/components/` — replaceable interface
