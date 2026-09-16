@@ -1,4 +1,4 @@
-/** Helix Mini 4.2 lite — pulse, gravity, provider channels, STA. Mock LLM. */
+/** Helix Mini 4.0 lite — 4.2 provider-channel architecture. Mock LLM. */
 
 import { collectContext, contextProviderStats } from "./context/registry";
 import { EMBEDDING_EPSILON, embed, embeddingDistance } from "./embedding";
@@ -82,7 +82,7 @@ export function pulse(query: string, hint = ""): PulseResult {
   const q = (query || "status").trim();
   const beliefs = contextBeliefs(q);
   const neighbors = gravityRank(`${q} ${hint}`, beliefs, 4);
-  const top = neighbors[0]?.content || "Helix Mini 4.2 is listening.";
+  const top = neighbors[0]?.content || "Helix Mini 4.0 is listening.";
   const action = nextAction(q);
   const answer = [
     `Pulse on “${q}”.`,
@@ -125,5 +125,5 @@ export function curate(): string {
 
 export function stats(): string {
   const n = loadBeliefs(embed).length;
-  return `state=ACTIVE beliefs=${n} embed=ngram llm=mock version=4.2 ${contextProviderStats()}`;
+  return `state=ACTIVE beliefs=${n} embed=ngram llm=mock version=4.0 context=4.2 ${contextProviderStats()}`;
 }
