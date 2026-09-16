@@ -34,12 +34,29 @@ try {
     "src/lib/mcp/registry.ts",
     "src/lib/mcp/client.ts",
     "src/lib/mcp/mcp.test.ts",
+    "src/lib/helix/embedding.ts",
+    "src/lib/helix/journal.ts",
+    "src/lib/helix/context/types.ts",
+    "src/lib/helix/context/providers/journal.ts",
+    "src/lib/helix/context/providers/customization.ts",
+    "src/lib/helix/context/providers/mcp.ts",
+    "src/lib/helix/context/registry.ts",
+    "src/lib/helix/mini.ts",
+    "src/lib/helix/context/context.test.ts",
   ]);
   if (!compiled) process.exit();
 
   await writeFile(join(outDir, "package.json"), '{"type":"commonjs"}\n', "utf8");
-  const first = run(process.execPath, ["--test", join(outDir, "customization", "customization.test.js")]);
-  if (first) run(process.execPath, ["--test", join(outDir, "mcp", "mcp.test.js")]);
+
+  const tests = [
+    join(outDir, "customization", "customization.test.js"),
+    join(outDir, "mcp", "mcp.test.js"),
+    join(outDir, "helix", "context", "context.test.js"),
+  ];
+
+  for (const test of tests) {
+    if (!run(process.execPath, ["--test", test])) break;
+  }
 } finally {
   await rm(outDir, { recursive: true, force: true });
 }
